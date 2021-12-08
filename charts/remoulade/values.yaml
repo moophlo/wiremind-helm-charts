@@ -1,0 +1,206 @@
+serviceAccount:
+  # specifies whether a service account should be created
+  create: true
+  # annotations to add to the service account
+  annotations: {}
+  # the name of the service account to use.
+  # if not set and create is true, a name is generated using the fullname template
+  name: ""
+
+workers:  # Define remoulade workers to deploy
+  enabled: true
+  ## Environment variables to inject to all pods
+  sharedEnvironmentVariables: []  # [foo: a, bar: b]
+  serviceAccount:
+    ## Specifies whether a service account should be created
+    create: true
+    ## Annotations to add to the service account
+    annotations: {}
+    ## The name of the service account to use.
+    ## If not set and create is true, a name is generated using the fullname template
+    name: ""
+  defaults:
+    image:
+      repository: xxx
+      tag: xxx
+      pullPolicy: IfNotPresent
+      pullSecrets: []
+    resources:
+      limits:
+        cpu: "1"
+        memory: 1500Mi
+      requests:
+        cpu: "0.1"
+        memory: 128Mi
+    labels: {}
+    podLabels: {}
+    # XXX remove and change and document
+    # strategyType: RollingUpdate  # Can be Upgrade as well, see https://kubernetes.io/fr/docs/concepts/workloads/controllers/deployment/#strat%C3%A9gie
+    ## updateStrategy for PostgreSQL StatefulSet and its slaves StatefulSets
+    ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+    updateStrategy:
+      type: RollingUpdate
+    expectedDeploymentScalePriority: 1  # XXX See https://gitlab.cayzn.com/wiremind/devops/wiremind-kubernetes/-/blob/master/CustomResourceDefinition-expecteddeploymentscales.yaml#L47
+    terminationGracePeriodSeconds: 180
+    podAnnotations:
+    affinity:
+    priorityClassName:
+    nodeSelector: {}
+  list: {}  # See examples in ci directory
+
+superbowl:
+  enabled: true
+
+  replicaCount: 1
+
+  frontend:
+    image:
+      repository: ghcr.io/wiremind/super-bowl
+      pullPolicy: IfNotPresent
+      tag: master  # XXX
+    resources:
+      {}
+      ## We usually recommend not to specify default resources and to leave this as a conscious
+      ## choice for the user. This also increases chances charts run on environments with little
+      ## resources, such as Minikube. If you do want to specify resources, uncomment the following
+      ## lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+      # limits:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
+    securityContext:
+      {}
+      # capabilities:
+      #   drop:
+      #   - ALL
+      # readOnlyRootFilesystem: true
+      # runAsNonRoot: true
+      # runAsUser: 1000
+  backend:
+    # XXX document here what to do
+    image:
+      repository: xxx
+      pullPolicy: IfNotPresent
+      tag: xxx
+    command: []
+    args: []
+    resources:
+      {}
+      ## We usually recommend not to specify default resources and to leave this as a conscious
+      ## choice for the user. This also increases chances charts run on environments with little
+      ## resources, such as Minikube. If you do want to specify resources, uncomment the following
+      ## lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+      ## limits:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
+    securityContext:
+      {}
+      # capabilities:
+      #   drop:
+      #   - ALL
+      # readOnlyRootFilesystem: true
+      # runAsNonRoot: true
+      # runAsUser: 1000
+
+  imagePullSecrets: []
+
+  podAnnotations: {}
+
+  podSecurityContext:
+    {}
+    # fsGroup: 2000
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations:
+      {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+remoulade-postgresql:
+  postgresqlUsername: postgres
+  postgresqlPassword: setme
+  postgresqlDatabase: remoulade
+
+remoulade-rabbitmq:
+  auth:
+    username: rabbitmq
+    password: setme
+    erlangCookie: setme
+
+remoulade-redis:
+  auth:
+    password: setme
+  architecture: standalone
+
+# xxx define example with flask backend
+# xxx define additional secrets to define
+# XXX network policies {{- include "remoulade.networkPolicyLabels" $ | nindent 8 }}
+# Xxx volumes / volumemomunts
+## to move to wiremind helm chart:
+# podAnnotations cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+# PullSecrets:
+#         - name: gitlab-docker-registry
+# move command to list
+# Keep ExpectedDeploymentScale
+
+# Log nginx / flask: silence readinessprobes
+
+# {{/*
+# NetworkPolicies' labels.
+# */}}
+# {{- define "remoulade.networkPolicyLabels" -}}
+# {{ include "remoulade.redis-name" $ }}-client: "true"
+# {{ include "remoulade.rabbitmq-host" $ }}-client: "true"
+# {{ include "remoulade.postgresql-host" $ }}-client: "true"
+# {{ include "remoulade.elasticsearch-host" $ }}-client: "true"
+# {{- end }}
+
+# volumes:
+#   - name: wiremind-configfile
+#     secret:
+#       {{- if $currentWorker.usePrivilegedremouladeConf}}
+#       secretName: {{ template "remoulade.fullname" $ }}-privileged
+#       {{- else }}
+#       secretName: {{ template "remoulade.fullname" $ }}
+#       {{- end }}
+
+# volumeMounts:
+#   - name: wiremind-configfile
+#     mountPath: "/app/wiremind.yaml"
+#     subPath: wiremind.yaml
+
+# extracontainer
+# metrics
