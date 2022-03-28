@@ -1,4 +1,4 @@
-{{- if .Values.superbowl.ingress.enabled -}}
+{{- if and .Values.superbowl.enabled .Values.superbowl.ingress.enabled -}}
 {{- $fullName := include "remoulade.fullname" . -}}
 {{- $svcPort := .Values.superbowl.service.port -}}
 {{- if and .Values.superbowl.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}

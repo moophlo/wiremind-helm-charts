@@ -3,7 +3,7 @@ name: remoulade
 description: A Helm chart to deploy Remoulade and its dependencies
 home: https://github.com/wiremind/wiremind-helm-charts/tree/main/charts/remoulade
 version: 0.1.0
-appVersion: "0.34.5"
+appVersion: "0.46.0"
 type: application
 icon: https://raw.githubusercontent.com/wiremind/remoulade/master/artwork/logo.png
 dependencies:
@@ -11,14 +11,17 @@ dependencies:
     version: "*"
     repository: https://charts.bitnami.com/bitnami
     alias: remoulade-postgresql
+    condition: remoulade-postgresql.enabled
   - name: redis
     version: "*"
     repository: https://charts.bitnami.com/bitnami
     alias: remoulade-redis
+    condition: remoulade-redis.enabled
   - name: rabbitmq
     version: "*"
     repository: https://charts.bitnami.com/bitnami
     alias: remoulade-rabbitmq
+    condition: remoulade-rabbimq.enabled
   - name: prometheus-rabbitmq-exporter
     version: "*"
     repository: https://prometheus-community.github.io/helm-charts

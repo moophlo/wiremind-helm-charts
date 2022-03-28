@@ -1,26 +1,23 @@
-defaults:
-  image:
-    # We'll deploy the "composition" example
-    repository: ghcr.io/wiremind/remoulade
-    tag: docker-example-composition
-    pullPolicy: Always
-    pullSecrets: []
-  labels: {}
-  podLabels: {}
-
-  additionalEnvironmentVariables: {foo: a, bar: b}
-  terminationGracePeriodSeconds:
-  # disableMetrics: true  # By default, metrics are enabled, you can explicitely disable them
-  podAnnotations: {}
-  priorityClassName:
-
 workers:
+  defaults:
+    image:
+      # We'll deploy the "composition" example
+      repository: ghcr.io/wiremind/remoulade
+      tag: v0.46.2-example-composition
+      pullPolicy: Always
+      pullSecrets: []
+    labels: {foo: bar}
+    podLabels: {foo: bar}
+
+    extraEnvVars: {foo: a, bar: b}
+    terminationGracePeriodSeconds: 10
+    # disableMetrics: true  # By default, metrics are enabled, you can explicitely disable them
+    podAnnotations: {foo: bar}
+    priorityClassName:
+
   list:
-    my-worker-type:
-      # Mandatory values to be stated for all types of workers
+    worker-from-defaults:
+      # Will reuse the defaults set upper
       replicaCount: 1
       autoscaling:
         enabled: false
-      # Optional values, if not defined, will not be used
-      command: ["python"]
-      args: ["example.py"]

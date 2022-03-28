@@ -26,7 +26,7 @@ jobs:
           python-version: 3.7
 
       - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.1.0
+        uses: helm/chart-testing-action@v2.2.1
 
       - name: Run chart-testing (list-changed)
         id: list-changed
@@ -44,7 +44,11 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Deploy Prometheus Operator crds
-        run: kubectl apply -f https://raw.githubusercontent.com/operator-framework/operator-registry/master/manifests/prometheus/0.22.2/prometheus.crd.yaml
+        run: |
+          kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.55.0/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+          kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.55.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+          kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.55.0/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+          kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.55.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
 
       - name: Run chart-testing (install)
         run: ct install --config ct.yaml

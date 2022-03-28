@@ -1,0 +1,54 @@
+workers:
+  list:
+    my-worker:
+      ## Mandatory values to be stated for all types of workers
+      replicaCount: 1
+      ## Horizontal Pod Autoscaler
+      ## Refs:
+      ## - https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+      ## - https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/
+      autoscaling:
+        enabled: true
+        ## minReplicas SHOULD be >= 1 for now.
+        minReplicas: 1
+        maxReplicas: 1
+        describedService: "some_service"
+        metricName: "some_rabbitmq_queue_name"
+        metricMatchLabels:
+          queue: queue_name
+        targetMetricValue: 42
+      ## Optional values, if not defined, will use defaults defined earlier
+      image:
+        ## We deploy the "composition" example
+        repository: ghcr.io/wiremind/remoulade
+        # tag: v0.46.0-example-composition
+        tag: v0.46.2-example-composition
+        # pullPolicy: Always
+        pullSecrets: []
+      labels: {}
+      podLabels: {foo: bar}
+      ## Optional values, if not defined, will not be used
+      command: ["composition_worker"]
+      # args: ["example"]
+      extraEnvVars: {foo: a, bar: b}
+      terminationGracePeriodSeconds:
+      # disableMetrics: true  # By default, metrics are enabled, you can explicitely disable them
+      podAnnotations: {"foo": "bar"}
+      priorityClassName:
+
+superbowl:
+  enabled: true
+  frontend:
+    image:
+      repository: ghcr.io/wiremind/super-bowl
+      tag: v0.3.0
+  backend:
+    image:
+      repository: ghcr.io/wiremind/remoulade
+      tag: v0.46.2-example-composition
+    command: ["composition_serve"]
+    # args:
+    #   - "example.py"
+    #   - "--server"
+  ingress:
+    enabled: true

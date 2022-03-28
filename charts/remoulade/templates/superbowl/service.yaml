@@ -1,3 +1,4 @@
+{{- if and .Values.superbowl.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -13,3 +14,4 @@ spec:
       name: http
   selector:
     {{- include "remoulade.selectorLabels" . | nindent 4 }}
+{{ end }}

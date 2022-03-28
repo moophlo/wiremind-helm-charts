@@ -1,0 +1,13 @@
+workers:
+  list:
+    my-worker-with-extra-container:
+      image:
+        # We'll deploy the "composition" example
+        repository: ghcr.io/wiremind/remoulade
+        tag: v0.46.2-example-composition
+      replicaCount: 1
+      autoscaling:
+        enabled: false
+      extraContainerList:
+        - name: dummy-extra-container
+          image: nginx:mainline

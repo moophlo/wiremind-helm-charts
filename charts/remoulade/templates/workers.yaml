@@ -13,10 +13,7 @@ metadata:
   labels:
     {{- include "remoulade.labels" $ | nindent 4 }}
     app.kubernetes.io/component: remoulade-worker-{{ $workerType }}
-    {{- with $workerDefault.labels }}
-    {{- toYaml . | nindent 4}}
-    {{- end }}
-    {{- with $currentWorker.labels }}
+    {{- with default $workerDefault.labels $currentWorker.labels }}
     {{- toYaml . | nindent 4}}
     {{- end }}
 spec:
@@ -34,10 +31,13 @@ spec:
       labels:
         {{- include "remoulade.labels" $ | nindent 8 }}
         app.kubernetes.io/component: remoulade-worker-{{ $workerType }}
+        {{- with default $workerDefault.podLabels $currentWorker.podLabels }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/secret.yaml") $ | sha256sum }}
-        {{- if or $currentWorker.podAnnotations $workerDefault.podAnnotations }}
-        {{- $currentWorker.podAnnotations | default $workerDefault.podAnnotations | toYaml | nindent 8 }}
+        {{- with default $workerDefault.podAnnotations $currentWorker.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
       priorityClassName: {{ $currentWorker.priorityClassName | default $workerDefault.priorityClassName }}
@@ -64,11 +64,11 @@ spec:
             - secretRef:
                 name: {{ template "remoulade.fullname" $ }}
           env:
-            {{- range $key, $val := $.additionalEnvironmentVariables }}
+            {{- range $key, $val := $.extraEnvVars }}
             - name: {{ $key }}
               value: {{ $val | quote }}
             {{- end }}
-            {{- range $key, $val := $currentWorker.additionalEnvironmentVariables }}
+            {{- range $key, $val := $currentWorker.extraEnvVars }}
             - name: {{ $key }}
               value: {{ $val | quote }}
             {{- end }}
@@ -78,6 +78,9 @@ spec:
           {{- end }}
           securityContext:
             allowPrivilegeEscalation: false
+        {{- if $currentWorker.extraContainerList }}
+        {{- toYaml $currentWorker.extraContainerList | nindent 8 }}
+        {{- end }}
       {{- with default $workerDefault.nodeSelector $currentWorker.nodeSelector }}
       nodeSelector: {{- toYaml . | nindent 8 }}
       {{- end }}
